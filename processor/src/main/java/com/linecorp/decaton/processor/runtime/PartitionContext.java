@@ -89,7 +89,7 @@ public class PartitionContext {
     }
 
     public void updateHighWatermark() {
-        commitControl.updateHighWatermark();
+//        commitControl.updateHighWatermark();
         int pendingCount = commitControl.pendingOffsetsCount();
         if (pendingCount == 0 && lastQueueStarvedTime < 0) {
             lastQueueStarvedTime = System.nanoTime();

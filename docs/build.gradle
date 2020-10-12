@@ -12,4 +12,4 @@ task(validateDocs, dependsOn: 'classes', type: JavaExec) {
     args project.version, project.projectDir.toString()
 }
 
-test.dependsOn validateDocs
+//test.dependsOn validateDocs

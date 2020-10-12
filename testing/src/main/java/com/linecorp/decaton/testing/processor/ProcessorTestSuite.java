@@ -17,6 +17,8 @@
 package com.linecorp.decaton.testing.processor;
 
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -284,6 +286,33 @@ public class ProcessorTestSuite {
         }
     }
 
+    private static final SecureRandom rand;
+    static {
+        try {
+            rand = SecureRandom.getInstance("NativePRNGNonBlocking");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static UUID nonblockingUUID() {
+        byte[] randomBytes = new byte[16];
+        rand.nextBytes(randomBytes);
+        randomBytes[6]  &= 0x0f;  /* clear version        */
+        randomBytes[6]  |= 0x40;  /* set to version 4     */
+        randomBytes[8]  &= 0x3f;  /* clear variant        */
+        randomBytes[8]  |= 0x80;  /* set to IETF variant  */
+
+        long msb = 0;
+        long lsb = 0;
+
+        for (int i=0; i<8; i++)
+            msb = (msb << 8) | (randomBytes[i] & 0xff);
+        for (int i=8; i<16; i++)
+            lsb = (lsb << 8) | (randomBytes[i] & 0xff);
+        return new UUID(msb, lsb);
+    }
+
     /**
      * Generate and produce {@link #NUM_TASKS} tasks
      * @param producer Producer instance to be used
@@ -314,7 +343,7 @@ public class ProcessorTestSuite {
                                       .setSerializedTask(ByteString.copyFrom(serializer.serialize(task)))
                                       .build();
             System.out.println("foooooo");
-            String traceId = "trace-" + UUID.randomUUID();
+            String traceId = "trace-" + nonblockingUUID();
             final RecordHeader traceHeader = new RecordHeader(TestTracingProvider.TRACE_HEADER,
                                                               traceId.getBytes(StandardCharsets.UTF_8));
             ProducerRecord<String, DecatonTaskRequest> record =

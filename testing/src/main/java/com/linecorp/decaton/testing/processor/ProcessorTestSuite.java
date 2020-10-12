@@ -313,6 +313,7 @@ public class ProcessorTestSuite {
                                       .setMetadata(taskMetadata)
                                       .setSerializedTask(ByteString.copyFrom(serializer.serialize(task)))
                                       .build();
+            System.out.println("foooooo");
             String traceId = "trace-" + UUID.randomUUID();
             final RecordHeader traceHeader = new RecordHeader(TestTracingProvider.TRACE_HEADER,
                                                               traceId.getBytes(StandardCharsets.UTF_8));

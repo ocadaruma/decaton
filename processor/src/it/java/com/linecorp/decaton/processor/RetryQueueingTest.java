@@ -74,7 +74,7 @@ public class RetryQueueingTest {
         }
     }
 
-    @Test(timeout = 30000)
+    @Test(timeout = 60000)
     public void testRetryQueuing() throws Exception {
         // scenario:
         //   * all arrived tasks are retried once

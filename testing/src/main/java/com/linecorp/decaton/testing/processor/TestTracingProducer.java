@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 
+import org.apache.kafka.clients.consumer.ConsumerGroupMetadata;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.Producer;
@@ -56,6 +57,12 @@ public class TestTracingProducer implements Producer<String, DecatonTaskRequest>
     public void sendOffsetsToTransaction(Map<TopicPartition, OffsetAndMetadata> offsets, String consumerGroupId)
             throws ProducerFencedException {
         inner.sendOffsetsToTransaction(offsets, consumerGroupId);
+    }
+
+    @Override
+    public void sendOffsetsToTransaction(Map<TopicPartition, OffsetAndMetadata> offsets,
+                                         ConsumerGroupMetadata groupMetadata) throws ProducerFencedException {
+        inner.sendOffsetsToTransaction(offsets, groupMetadata);
     }
 
     @Override

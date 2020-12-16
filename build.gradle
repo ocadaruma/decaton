@@ -32,7 +32,7 @@ allprojects {
 
     ext {
         protobufVersion = "3.3.0"
-        kafkaVersion = "2.4.0"
+        kafkaVersion = "2.5.0"
         prometheusVersion = "0.6.0"
         micrometerVersion = "1.5.1"
         lombokVersion = "1.18.4"

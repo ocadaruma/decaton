@@ -72,7 +72,7 @@ public class IndexReadBenchmark {
             buffer = new FileByteBuffer(raf);
         }
 
-        @Setup(Level.Invocation)
+        @TearDown(Level.Invocation)
         public void cleanup() throws Exception {
             buffer.close();
         }

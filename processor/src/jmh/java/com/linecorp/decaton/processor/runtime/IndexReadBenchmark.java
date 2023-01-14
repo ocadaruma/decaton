@@ -127,7 +127,7 @@ public class IndexReadBenchmark {
     @OperationsPerInvocation(ENTRIES)
     public void mmap(MmapState state) throws Exception {
         for (int i = 0; i < ENTRIES; i++) {
-            state.buffer.getLong(i * 8);
+            state.buffer.getInt(i * 8);
             state.buffer.getInt(i * 8 + 4);
         }
     }

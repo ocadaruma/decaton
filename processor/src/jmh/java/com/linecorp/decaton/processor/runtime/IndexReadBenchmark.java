@@ -97,14 +97,14 @@ public class IndexReadBenchmark {
         public void initialize() throws Exception {
             try (RandomAccessFile raf = new RandomAccessFile(path.toFile(), "rw")) {
                 raf.setLength(SIZE);
+                for (int i = 0; i < ENTRIES; i++) {
+                    raf.writeLong(42L);
+                    raf.writeInt(i);
+                }
+                evictPageCache(path);
+
                 buffer = raf.getChannel().map(MapMode.READ_WRITE, 0, SIZE);
             }
-            for (int i = 0; i < ENTRIES; i++) {
-                buffer.putLong(42L);
-                buffer.putInt(i);
-            }
-            buffer.position(0);
-            evictPageCache(path);
         }
 
         @TearDown(Level.Trial)

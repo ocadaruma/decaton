@@ -24,6 +24,7 @@ import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.apache.kafka.common.utils.ByteBufferUnmapper;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -95,6 +96,10 @@ public class IndexReadBenchmark {
 
         @Setup(Level.Invocation)
         public void initialize() throws Exception {
+            if (buffer != null) {
+                ByteBufferUnmapper.unmap("bench", buffer);
+            }
+
             try (RandomAccessFile raf = new RandomAccessFile(path.toFile(), "rw")) {
                 raf.setLength(SIZE);
                 for (int i = 0; i < ENTRIES; i++) {

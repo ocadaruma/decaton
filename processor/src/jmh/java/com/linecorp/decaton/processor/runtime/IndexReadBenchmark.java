@@ -141,6 +141,7 @@ public class IndexReadBenchmark {
             process.waitFor();
             String stdout = new String(process.getInputStream().readAllBytes());
             if (stdout.contains(" 0%")) {
+                Thread.sleep(500L);
                 break;
             }
         }

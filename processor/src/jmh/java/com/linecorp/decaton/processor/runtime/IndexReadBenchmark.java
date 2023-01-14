@@ -19,10 +19,13 @@ package com.linecorp.decaton.processor.runtime;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 import org.apache.kafka.common.utils.ByteBufferUnmapper;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -45,10 +48,10 @@ import org.openjdk.jmh.annotations.Warmup;
 @Threads(1)
 @Fork(1)
 @Warmup(iterations = 5, time = 1, timeUnit = SECONDS)
-@Measurement(iterations = 10, time = 1, timeUnit = SECONDS)
+@Measurement(iterations = 5, time = 1, timeUnit = SECONDS)
 public class IndexReadBenchmark {
     private static final int SIZE = 1024 * 1024 * 10;
-    private static final int ENTRY_SIZE = 8 + 4;
+    private static final int ENTRY_SIZE = 4 + 4;
     private static final int ENTRIES = SIZE / ENTRY_SIZE;
 
     @State(Scope.Thread)
@@ -59,27 +62,23 @@ public class IndexReadBenchmark {
         @Setup(Level.Trial)
         public void setup() throws Exception {
             path = Files.createTempFile("index-", ".bin");
+            fill(path);
         }
 
         @Setup(Level.Invocation)
         public void initialize() throws Exception {
+            evictPageCache(path);
             RandomAccessFile raf = new RandomAccessFile(path.toFile(), "rw");
             buffer = new FileByteBuffer(raf);
+        }
 
-            raf.setLength(SIZE);
-            buffer.updateLimit();
-
-            for (int i = 0; i < ENTRIES; i++) {
-                buffer.putLong(42L);
-                buffer.putInt(i);
-            }
-            buffer.position(0);
-            evictPageCache(path);
+        @Setup(Level.Invocation)
+        public void cleanup() throws Exception {
+            buffer.close();
         }
 
         @TearDown(Level.Trial)
         public void tearDown() throws Exception {
-            buffer.close();
             Files.deleteIfExists(path);
         }
     }
@@ -92,24 +91,21 @@ public class IndexReadBenchmark {
         @Setup(Level.Trial)
         public void setup() throws Exception {
             path = Files.createTempFile("index-", ".bin");
+            fill(path);
         }
 
         @Setup(Level.Invocation)
         public void initialize() throws Exception {
-            if (buffer != null) {
-                ByteBufferUnmapper.unmap("bench", buffer);
-            }
-
+            evictPageCache(path);
             try (RandomAccessFile raf = new RandomAccessFile(path.toFile(), "rw")) {
-                raf.setLength(SIZE);
-                for (int i = 0; i < ENTRIES; i++) {
-                    raf.writeLong(42L);
-                    raf.writeInt(i);
-                }
-                evictPageCache(path);
-
-                buffer = raf.getChannel().map(MapMode.READ_WRITE, 0, SIZE);
+                buffer = raf.getChannel().map(MapMode.READ_WRITE, 0, raf.length());
             }
+        }
+
+        @TearDown(Level.Invocation)
+        public void cleanup() throws Exception {
+            ByteBufferUnmapper.unmap("bench", buffer);
+            buffer = null;
         }
 
         @TearDown(Level.Trial)
@@ -148,6 +144,18 @@ public class IndexReadBenchmark {
             if (stdout.contains(" 0%")) {
                 Thread.sleep(500L);
                 break;
+            }
+        }
+    }
+
+    private static void fill(Path path) throws Exception {
+        try (FileChannel channel = FileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.APPEND)) {
+            for (int i = 0; i < ENTRIES; i++) {
+                ByteBuffer buf = ByteBuffer.allocate(8);
+                buf.putInt(i);
+                buf.putInt(42 + i);
+                buf.flip();
+                channel.write(buf);
             }
         }
     }

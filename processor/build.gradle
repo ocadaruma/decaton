@@ -23,4 +23,6 @@ dependencies {
 
 jmh {
     failOnError = true
+//    profilers = ['async:output=text,flamegraph;libPath=/Users/hokada/develop/src/github.com/jvm-profiling-tools/async-profiler/build/libasyncProfiler.dylib']
+    profilers = ['perf']
 }

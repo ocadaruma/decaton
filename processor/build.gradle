@@ -7,6 +7,7 @@ dependencies {
     api "io.micrometer:micrometer-core:$micrometerVersion"
 
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    implementation "com.google.re2j:re2j:1.6"
 
     testImplementation project(":protobuf")
     testRuntimeOnly "ch.qos.logback:logback-classic:1.2.11"
@@ -19,6 +20,7 @@ dependencies {
     itImplementation project(":testing")
     itImplementation project(":benchmark")
     itImplementation "io.micrometer:micrometer-registry-prometheus:$micrometerVersion"
+    itImplementation "org.apache.kafka:kafka-streams:$kafkaVersion"
 }
 
 jmh {

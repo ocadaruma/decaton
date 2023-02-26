@@ -18,8 +18,6 @@ package com.linecorp.decaton.processor.runtime.internal;
 
 import static java.util.stream.Collectors.toList;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -32,8 +30,10 @@ import org.slf4j.LoggerFactory;
 
 import com.linecorp.decaton.processor.DecatonProcessor;
 import com.linecorp.decaton.processor.runtime.AsyncShutdownable;
+import com.linecorp.decaton.processor.runtime.PerKeyQuotaConfig;
 import com.linecorp.decaton.processor.runtime.ProcessorProperties;
 import com.linecorp.decaton.processor.metrics.Metrics;
+import com.linecorp.decaton.processor.runtime.Property;
 import com.linecorp.decaton.processor.runtime.internal.Utils.Task;
 
 /**
@@ -103,7 +103,7 @@ public class PartitionProcessor implements AsyncShutdownable {
         int concurrency = scope.props().get(ProcessorProperties.CONFIG_PARTITION_CONCURRENCY).value();
         units = new ArrayList<>(concurrency);
         subPartitioner = new SubPartitioner(concurrency);
-        rateLimiter = new DynamicRateLimiter(scope.props().get(ProcessorProperties.CONFIG_PROCESSING_RATE));
+        rateLimiter = new DynamicRateLimiter(rateProperty(scope));
 
         try {
             for (int i = 0; i < concurrency; i++) {
@@ -139,6 +139,16 @@ public class PartitionProcessor implements AsyncShutdownable {
 
         ProcessPipeline<?> pipeline = processors.newPipeline(threadScope, scheduler, metrics);
         return new ProcessorUnit(threadScope, pipeline);
+    }
+
+    // visible for testing
+    static Property<Long> rateProperty(PartitionScope scope) {
+        if (scope.isShapingTopic()) {
+            return scope.props()
+                        .tryGet(PerKeyQuotaConfig.shapingRateProperty(scope.topicPartition().topic()))
+                        .orElse(scope.props().get(ProcessorProperties.CONFIG_PER_KEY_QUOTA_PROCESSING_RATE));
+        }
+        return scope.props().get(ProcessorProperties.CONFIG_PROCESSING_RATE);
     }
 
     public void addTask(TaskRequest request) {

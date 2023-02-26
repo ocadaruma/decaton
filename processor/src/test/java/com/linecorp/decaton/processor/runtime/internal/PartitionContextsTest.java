@@ -78,7 +78,7 @@ public class PartitionContextsTest {
 
     private final PartitionScope scope = new PartitionScope(
             new SubscriptionScope("subscription", "topic",
-                                  Optional.empty(), props, NoopTracingProvider.INSTANCE,
+                                  Optional.empty(), Optional.empty(), props, NoopTracingProvider.INSTANCE,
                                   ConsumerSupplier.DEFAULT_MAX_POLL_RECORDS),
             new TopicPartition("topic", 0));
 

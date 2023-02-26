@@ -51,7 +51,7 @@ public class ProcessorsTest {
     private static final ThreadScope scope = new ThreadScope(
             new PartitionScope(
                     new SubscriptionScope(SUBSC_ID, topicPartition.topic(),
-                                          Optional.empty(), ProcessorProperties.builder().build(),
+                                          Optional.empty(), Optional.empty(), ProcessorProperties.builder().build(),
                                           NoopTracingProvider.INSTANCE,
                                           ConsumerSupplier.DEFAULT_MAX_POLL_RECORDS),
                     topicPartition),
@@ -67,7 +67,7 @@ public class ProcessorsTest {
                 mock(DecatonProcessorSupplier.class));
 
         Processors<HelloTask> processors = new Processors<>(
-                suppliers, null,
+                suppliers, null, null,
                 new DefaultTaskExtractor<>(bytes -> HelloTask.getDefaultInstance()),
                 null);
 

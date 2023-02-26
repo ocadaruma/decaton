@@ -178,6 +178,18 @@ public class ProcessorProperties extends AbstractDecatonProperties {
     public static final PropertyDefinition<Long> CONFIG_DEFERRED_COMPLETE_TIMEOUT_MS =
             PropertyDefinition.define("decaton.deferred.complete.timeout.ms", Long.class, -1L,
                                       v -> v instanceof Long);
+    /**
+     * Control per-key processing rate quota.
+     * Only effective when per-key quota is enabled by {@link SubscriptionBuilder#enablePerKeyQuota}.
+     * <p>
+     * Reloadable: yes
+     */
+    public static final PropertyDefinition<Long> CONFIG_PER_KEY_QUOTA_PROCESSING_RATE =
+            PropertyDefinition.define("decaton.per.key.quota.processing.rate", Long.class,
+                                      RateLimiter.UNLIMITED,
+                                      v -> v instanceof Long
+                                           && RateLimiter.UNLIMITED <= (long) v
+                                           && (long) v <= RateLimiter.MAX_RATE);
 
     public static final List<PropertyDefinition<?>> PROPERTY_DEFINITIONS =
             Collections.unmodifiableList(Arrays.asList(
@@ -190,7 +202,8 @@ public class ProcessorProperties extends AbstractDecatonProperties {
                     CONFIG_SHUTDOWN_TIMEOUT_MS,
                     CONFIG_LOGGING_MDC_ENABLED,
                     CONFIG_BIND_CLIENT_METRICS,
-                    CONFIG_DEFERRED_COMPLETE_TIMEOUT_MS));
+                    CONFIG_DEFERRED_COMPLETE_TIMEOUT_MS,
+                    CONFIG_PER_KEY_QUOTA_PROCESSING_RATE));
 
     /**
      * Find and return a {@link PropertyDefinition} from its name.

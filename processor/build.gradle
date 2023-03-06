@@ -20,6 +20,8 @@ dependencies {
     itImplementation project(":testing")
     itImplementation project(":benchmark")
     itImplementation "io.micrometer:micrometer-registry-prometheus:$micrometerVersion"
+    itImplementation "io.prometheus:simpleclient_httpserver:0.16.0"
+    itImplementation "com.google.guava:guava:31.1-jre"
 }
 
 jmh {

@@ -18,15 +18,12 @@ function run_with_opts() {
     name=$1; shift
     tmp=$(mktemp)
     $root_dir/benchmark/debm.sh \
-        --runs 3 \
+        --runs 1 \
         --title "$rev-$name" \
         --format=json \
         --profile \
         --profiler-bin="$PROFILER_BIN"  \
         --profiler-opts="-f $out_dir/$name-profile.svg" \
-        --taskstats \
-        --taskstats-bin="$JTASKSTATS_BIN" \
-        --taskstats-output="$out_dir/$name-taskstats.txt" \
         --file-name-only \
         --warmup 10000000 \
         --param=decaton.max.pending.records=10000 \

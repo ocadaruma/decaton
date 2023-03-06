@@ -16,6 +16,7 @@
 
 package com.linecorp.decaton.benchmark;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Properties;
@@ -50,9 +51,9 @@ public class RecordsGenerator {
     }
 
     private static Future<RecordMetadata> produce(
-            Producer<byte[], Task> producer, String topic, int latencyMs) {
+            Producer<byte[], Task> producer, String topic, byte[] key, int latencyMs) {
         Task task = new Task(System.currentTimeMillis(), latencyMs);
-        ProducerRecord<byte[], Task> record = new ProducerRecord<>(topic, null, task);
+        ProducerRecord<byte[], Task> record = new ProducerRecord<>(topic, key, task);
         return producer.send(record);
     }
 
@@ -70,7 +71,7 @@ public class RecordsGenerator {
         try (Producer<byte[], Task> producer =
                      new KafkaProducer<>(props, new ByteArraySerializer(), new Task.KafkaSerializer())) {
             for (int i = 0; i < numTasks; i++) {
-                results.addLast(produce(producer, topic, simulateLatencyMs));
+                results.addLast(produce(producer, topic, ("key" + i).getBytes(StandardCharsets.UTF_8), simulateLatencyMs));
                 consumeResults(results, false);
             }
         }

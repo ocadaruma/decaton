@@ -24,6 +24,8 @@
   <root level="WARN">
     <appender-ref ref="STDERR" />
   </root>
+  <logger name="com.linecorp.decaton" level="INFO" />
+  <logger name="org.apache.kafka.clients" level="INFO" />
   <logger name="com.linecorp.decaton.benchmark" level="DEBUG" />
   <logger name="kafka" level="OFF" />
   <logger name="state.change.logger" level="OFF" />

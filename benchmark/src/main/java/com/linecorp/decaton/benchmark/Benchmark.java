@@ -35,6 +35,7 @@ public class Benchmark {
     private static TemporaryTopic createTempTopic(String bootstrapServers) {
         String topic = "decatonbench-" + UUID.randomUUID();
         log.info("Creating temporary topic {} on {}", topic, bootstrapServers);
+        TemporaryTopic.create(bootstrapServers, topic + "-shaping");
         return TemporaryTopic.create(bootstrapServers, topic);
     }
 

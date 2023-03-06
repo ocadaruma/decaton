@@ -100,8 +100,8 @@ class PerKeyQuotaManager {
     public QuotaUsage record(byte[] key) {
         long quota = processingRate.value();
         // Fast path.
-        // If current quota value is unlimited, return immediately without recording
-        if (quota == RateLimiter.UNLIMITED) {
+        // If the key is null or current quota value is unlimited, return immediately without recording
+        if (key == null || quota == RateLimiter.UNLIMITED) {
             return QuotaUsage.COMPLY;
         }
 

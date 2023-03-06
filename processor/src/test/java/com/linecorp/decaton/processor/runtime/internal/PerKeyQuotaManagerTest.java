@@ -74,7 +74,7 @@ public class PerKeyQuotaManagerTest {
         PerKeyQuotaManager manager = new PerKeyQuotaManager(
                 scope(RateLimiter.UNLIMITED), timestampSupplier, windowedStat);
 
-        manager.record(key);
+        assertEquals(QuotaUsage.COMPLY, manager.record(key));
         verify(windowedStat, never()).recordAndGet(anyLong(), any());
     }
 
@@ -117,5 +117,14 @@ public class PerKeyQuotaManagerTest {
 
         QuotaUsage usage = manager.record(key);
         assertEquals(QuotaUsage.COMPLY, usage);
+    }
+
+    @Test
+    public void testNullKey() {
+        PerKeyQuotaManager manager = new PerKeyQuotaManager(
+                scope(42L), timestampSupplier, windowedStat);
+
+        assertEquals(QuotaUsage.COMPLY, manager.record(null));
+        verify(windowedStat, never()).recordAndGet(anyLong(), any());
     }
 }

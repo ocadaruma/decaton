@@ -52,9 +52,6 @@ public class AsyncProfilerProfiling implements Profiling {
             this.asyncProfilerOpts.add("-f");
             this.asyncProfilerOpts.add(outputFileName());
         }
-        this.asyncProfilerOpts.add("-e");
-        this.asyncProfilerOpts.add("wall");
-        this.asyncProfilerOpts.add("-t");
     }
 
     private static String outputFileName() {

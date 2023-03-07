@@ -30,7 +30,6 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import com.linecorp.decaton.processor.TaskMetadata;
 import com.linecorp.decaton.processor.runtime.DecatonTask;
 import com.linecorp.decaton.processor.runtime.PerKeyQuotaConfig;
-import com.linecorp.decaton.processor.runtime.PerKeyQuotaConfig.QuotaCallback.Action;
 import com.linecorp.decaton.processor.runtime.ProcessorProperties;
 import com.linecorp.decaton.processor.runtime.ProcessorScope;
 import com.linecorp.decaton.processor.runtime.ProcessorSubscription;
@@ -38,12 +37,11 @@ import com.linecorp.decaton.processor.runtime.ProcessorsBuilder;
 import com.linecorp.decaton.processor.runtime.Property;
 import com.linecorp.decaton.processor.runtime.StaticPropertySupplier;
 import com.linecorp.decaton.processor.runtime.SubscriptionBuilder;
-import com.linecorp.decaton.processor.runtime.SubscriptionStateListener;
 import com.linecorp.decaton.processor.runtime.SubscriptionStateListener.State;
 import com.linecorp.decaton.processor.runtime.TaskExtractor;
 import com.linecorp.decaton.processor.runtime.internal.RateLimiter;
 
-public class DecatonPKQRunner implements Runner {
+public class DecatonPKQUnlimitedRunner implements Runner {
     private static final Map<String, Function<String, Object>> propertyConstructors =
             new HashMap<String, Function<String, Object>>() {{
                 put(ProcessorProperties.CONFIG_MAX_PENDING_RECORDS.name(), Integer::parseInt);
@@ -77,7 +75,7 @@ public class DecatonPKQRunner implements Runner {
             Property<?> prop = ProcessorProperties.propertyForName(name, value);
             properties.add(prop);
         }
-        properties.add(Property.ofStatic(ProcessorProperties.CONFIG_PER_KEY_QUOTA_PROCESSING_RATE, RateLimiter.MAX_RATE));
+        properties.add(Property.ofStatic(ProcessorProperties.CONFIG_PER_KEY_QUOTA_PROCESSING_RATE, RateLimiter.UNLIMITED));
 
         CountDownLatch startLatch = new CountDownLatch(1);
         AtomicBoolean burst = new AtomicBoolean(false);

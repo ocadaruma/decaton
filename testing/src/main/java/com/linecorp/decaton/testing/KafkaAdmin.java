@@ -18,9 +18,11 @@ package com.linecorp.decaton.testing;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
@@ -35,12 +37,13 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class KafkaAdmin implements AutoCloseable {
+    private static final AtomicInteger sequence = new AtomicInteger(0);
     private final AdminClient adminClient;
 
     public KafkaAdmin(String bootstrapServers) {
         Properties props = new Properties();
         props.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.setProperty(AdminClientConfig.CLIENT_ID_CONFIG, "admin");
+        props.setProperty(AdminClientConfig.CLIENT_ID_CONFIG, "admin-" + sequence.incrementAndGet());
 
         adminClient = AdminClient.create(props);
     }
@@ -53,6 +56,15 @@ public class KafkaAdmin implements AutoCloseable {
         String topicName = "test-" + UUID.randomUUID();
         createTopic(topicName, numPartitions, replicationFactor);
         return topicName;
+    }
+
+    public void createTopic(String topicName, Map<Integer, List<Integer>> replicasAssignments) {
+        NewTopic newTopic = new NewTopic(topicName, replicasAssignments);
+        try {
+            adminClient.createTopics(Collections.singleton(newTopic)).all().get();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void createTopic(String topicName, int numPartitions, int replicationFactor) {

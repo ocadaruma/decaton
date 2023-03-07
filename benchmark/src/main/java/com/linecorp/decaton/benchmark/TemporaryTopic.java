@@ -16,6 +16,9 @@
 
 package com.linecorp.decaton.benchmark;
 
+import java.util.List;
+import java.util.Map;
+
 import com.linecorp.decaton.testing.KafkaAdmin;
 
 import lombok.AllArgsConstructor;
@@ -35,6 +38,13 @@ public class TemporaryTopic implements AutoCloseable {
         KafkaAdmin admin = new KafkaAdmin(bootstrapServers);
         log.info("Creating topic {} on {}", topic, bootstrapServers);
         admin.createTopic(topic, 3, 3);
+        return new TemporaryTopic(admin, topic);
+    }
+
+    public static TemporaryTopic create(String bootstrapServers, String topic, Map<Integer, List<Integer>> assignments) {
+        KafkaAdmin admin = new KafkaAdmin(bootstrapServers);
+        log.info("Creating topic {} on {}", topic, bootstrapServers);
+        admin.createTopic(topic, assignments);
         return new TemporaryTopic(admin, topic);
     }
 

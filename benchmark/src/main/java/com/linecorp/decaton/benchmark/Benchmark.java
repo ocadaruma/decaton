@@ -16,6 +16,9 @@
 
 package com.linecorp.decaton.benchmark;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 import com.linecorp.decaton.benchmark.Execution.Stage;
@@ -35,8 +38,20 @@ public class Benchmark {
     private static TemporaryTopic createTempTopic(String bootstrapServers) {
         String topic = "decatonbench-" + UUID.randomUUID();
         log.info("Creating temporary topic {} on {}", topic, bootstrapServers);
-        TemporaryTopic.create(bootstrapServers, topic + "-shaping");
-        return TemporaryTopic.create(bootstrapServers, topic);
+        return TemporaryTopic.create(bootstrapServers, topic,
+                                     new HashMap<Integer, List<Integer>>() {{
+                                         put(0, Arrays.asList(0, 1, 2));
+                                         put(1, Arrays.asList(1, 2, 0));
+                                         put(2, Arrays.asList(2, 0, 1));
+                                     }});
+    }
+
+    private static TemporaryTopic createTempShapingTopic(String bootstrapServers, String originalTopicName) {
+        String topic = originalTopicName + "-shaping";
+        log.info("Creating temporary topic {} on {}", topic, bootstrapServers);
+        return TemporaryTopic.create(bootstrapServers, topic, new HashMap<Integer, List<Integer>>() {{
+            put(0, Arrays.asList(3, 0, 1));
+        }});
     }
 
     private static void generateWorkload(String bootstrapServers, String topic, int numTasks, int latencyMs) {
@@ -75,22 +90,25 @@ public class Benchmark {
         String bootstrapServers = config.bootstrapServers();
         if (bootstrapServers == null) {
             zooKeeper = new EmbeddedZooKeeper();
-            kafkaCluster = new EmbeddedKafkaCluster(3, zooKeeper.zkConnectAsString());
+            kafkaCluster = new EmbeddedKafkaCluster(4, zooKeeper.zkConnectAsString());
             bootstrapServers = kafkaCluster.bootstrapServers();
         }
         log.info("Using kafka clusters: {}", bootstrapServers);
 
         try {
             TemporaryTopic topic = createTempTopic(bootstrapServers);
+            TemporaryTopic shapingTopic = createTempShapingTopic(bootstrapServers, topic.topic());
             try {
                 return runRecording(bootstrapServers, topic.topic());
             } finally {
-                try {
-                    topic.close();
-                    // Need to wait a while until all replicas of the deleted topic to disappear from brokers.
-                    Thread.sleep(1000);
-                } catch (Exception e) {
-                    log.warn("Failed to cleanup temporary topic {}", topic.topic(), e);
+                for (TemporaryTopic tmpTopic : Arrays.asList(topic, shapingTopic)) {
+                    try {
+                        tmpTopic.close();
+                        // Need to wait a while until all replicas of the deleted topic to disappear from brokers.
+                        Thread.sleep(1000);
+                    } catch (Exception e) {
+                        log.warn("Failed to cleanup temporary topic {}", topic.topic(), e);
+                    }
                 }
             }
         } finally {

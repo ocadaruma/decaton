@@ -103,6 +103,7 @@ public class ProcessorSubscriptionTest {
                 "subscription",
                 topic,
                 Optional.empty(),
+                Optional.empty(),
                 ProcessorProperties.builder().set(Property.ofStatic(
                         ProcessorProperties.CONFIG_SHUTDOWN_TIMEOUT_MS, waitForProcessingOnClose)).build(),
                 NoopTracingProvider.INSTANCE,

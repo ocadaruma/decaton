@@ -62,9 +62,17 @@ public class PartitionContext implements AutoCloseable {
     private volatile long latestConsumedOffset;
 
     public PartitionContext(PartitionScope scope, Processors<?> processors, int maxPendingRecords) {
+        this(scope, processors, new PartitionProcessor(scope, processors), maxPendingRecords);
+    }
+
+    // visible for testing
+    PartitionContext(PartitionScope scope,
+                     Processors<?> processors,
+                     PartitionProcessor partitionProcessor,
+                     int maxPendingRecords) {
         this.scope = scope;
         this.processors = processors;
-        partitionProcessor = new PartitionProcessor(scope, processors);
+        this.partitionProcessor = partitionProcessor;
 
         int capacity = maxPendingRecords + scope.maxPollRecords();
         TopicPartition tp = scope.topicPartition();
@@ -75,7 +83,7 @@ public class PartitionContext implements AutoCloseable {
                 scope.props().get(ProcessorProperties.CONFIG_DEFERRED_COMPLETE_TIMEOUT_MS),
                 metricsCtor.new CommitControlMetrics());
         commitControl = new OutOfOrderCommitControl(scope.topicPartition(), capacity, offsetStateReaper);
-        if (scope.perKeyQuotaConfig().isPresent() && !scope.isShapingTopic()) {
+        if (scope.perKeyQuotaConfig().isPresent() && scope.topic().equals(scope.topicPartition().topic())) {
             perKeyQuotaManager = PerKeyQuotaManager.create(scope);
         } else {
             perKeyQuotaManager = null;

@@ -16,19 +16,21 @@
 
 package com.linecorp.decaton.processor.runtime;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.header.Headers;
 
 /**
- * An interface for classes extracting {@link DecatonTask} from given record.
+ * An interface for classes extracting {@link DecatonTask} from given bytes.
  * @param <T> type of task.
  */
 public interface TaskExtractor<T> {
     /**
-     * Extract object of type {@link DecatonTask} from given bytes.
-     * @param record {@link ConsumerRecord} to extract task from.
+     * Extract object of type {@link DecatonTask} from given headers and bytes.
+     * @param topic topic the record came from
+     * @param headers headers of the record
+     * @param bytes raw message bytes.
      * @return object of type {@link DecatonTask}.
-     * @throws RuntimeException this method can throw arbitrary {@link RuntimeException} if given record is invalid.
+     * @throws RuntimeException this method can throw arbitrary {@link RuntimeException} if given bytes is invalid.
      * If the method throws an exception, the task will be discarded and processor continues to process subsequent tasks.
      */
-    DecatonTask<T> extract(ConsumerRecord<byte[], byte[]> record);
+    DecatonTask<T> extract(String topic, Headers headers, byte[] bytes);
 }

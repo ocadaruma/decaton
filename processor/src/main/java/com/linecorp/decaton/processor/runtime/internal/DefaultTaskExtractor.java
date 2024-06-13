@@ -16,7 +16,7 @@
 
 package com.linecorp.decaton.processor.runtime.internal;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.header.Headers;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
@@ -35,17 +35,16 @@ public class DefaultTaskExtractor<T> implements TaskExtractor<T> {
     private final Deserializer<T> taskDeserializer;
 
     @Override
-    public DecatonTask<T> extract(ConsumerRecord<byte[], byte[]> record) {
-        TaskMetadataProto headerMeta = TaskMetadataUtil.readFromHeader(record.headers());
+    public DecatonTask<T> extract(String topic, Headers headers, byte[] bytes) {
+        TaskMetadataProto headerMeta = TaskMetadataUtil.readFromHeader(headers);
         if (headerMeta != null) {
-            byte[] taskDataBytes = record.value();
             return new DecatonTask<>(
                     TaskMetadata.fromProto(headerMeta),
-                    taskDeserializer.deserialize(taskDataBytes),
-                    taskDataBytes);
+                    taskDeserializer.deserialize(bytes),
+                    bytes);
         } else {
             try {
-                DecatonTaskRequest taskRequest = DecatonTaskRequest.parseFrom(record.value());
+                DecatonTaskRequest taskRequest = DecatonTaskRequest.parseFrom(bytes);
                 TaskMetadata metadata = TaskMetadata.fromProto(taskRequest.getMetadata());
                 byte[] taskDataBytes = taskRequest.getSerializedTask().toByteArray();
 

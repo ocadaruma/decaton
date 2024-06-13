@@ -20,8 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-
 import com.linecorp.decaton.common.Deserializer;
 import com.linecorp.decaton.processor.DecatonProcessor;
 import com.linecorp.decaton.processor.runtime.internal.DecatonProcessorSupplierImpl;
@@ -79,22 +77,9 @@ public class ProcessorsBuilder<T> {
         // Hence, we need to extract the task with DefaultTaskExtractor to "unwrap" the task first,
         // then extract the task with the given taskExtractor.
         DefaultTaskExtractor<byte[]> outerExtractor = new DefaultTaskExtractor<>(bytes -> bytes);
-        TaskExtractor<T> retryTaskExtractor = record -> {
-            DecatonTask<byte[]> rawTask = outerExtractor.extract(record);
-            ConsumerRecord<byte[], byte[]> inner = new ConsumerRecord<>(
-                    record.topic(),
-                    record.partition(),
-                    record.offset(),
-                    record.timestamp(),
-                    record.timestampType(),
-                    record.serializedKeySize(),
-                    rawTask.taskDataBytes().length,
-                    record.key(),
-                    rawTask.taskDataBytes(),
-                    record.headers(),
-                    record.leaderEpoch()
-            );
-            DecatonTask<T> extracted = taskExtractor.extract(inner);
+        TaskExtractor<T> retryTaskExtractor = (tpc, headers, bytes) -> {
+            DecatonTask<byte[]> rawTask = outerExtractor.extract(tpc, headers, bytes);
+            DecatonTask<T> extracted = taskExtractor.extract(tpc, headers, rawTask.taskDataBytes());
             return new DecatonTask<>(
                     // Use rawTask#metadata because retry count is stored in rawTask#metada not extracted#metadata
                     rawTask.metadata(),

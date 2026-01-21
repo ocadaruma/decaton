@@ -122,6 +122,7 @@ public class RetryQueueingTest {
     @Test
     @Timeout(30)
     public void testRetryQueuing() throws Exception {
+        AtomicInteger headerPropagatedCount = new AtomicInteger(0);
         // scenario:
         //   * all arrived tasks are retried once
         //   * after retried (i.e. retryCount() > 0), no more retry
@@ -130,7 +131,12 @@ public class RetryQueueingTest {
                 .numTasks(1000)
                 .configureProcessorsBuilder(builder -> builder.thenProcess((ctx, task) -> {
                     if (ctx.metadata().retryCount() == 0) {
+                        ctx.headers().add("retry-id", "0".getBytes());
                         ctx.retry();
+                    } else {
+                        if (ctx.headers().lastHeader("retry-id") != null) {
+                            headerPropagatedCount.incrementAndGet();
+                        }
                     }
                 }))
                 .retryConfig(RetryConfig.builder()
@@ -144,6 +150,7 @@ public class RetryQueueingTest {
                 .customSemantics(new ProcessRetriedTask())
                 .build()
                 .run();
+        System.out.println("Header propagated for " + headerPropagatedCount.get() + " tasks");
     }
 
     @Test
